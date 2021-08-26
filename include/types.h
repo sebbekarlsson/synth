@@ -23,6 +23,7 @@ typedef enum {
   OSC_SIN,
   OSC_COS,
   OSC_TAN,
+  OSC_PERLIN,
   OSC_CUSTOM
 } Oscillator_Type;
 

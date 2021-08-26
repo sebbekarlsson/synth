@@ -1,9 +1,12 @@
 #include <audiomath.h>
 #include <math.h>
 #include <osc.h>
+#include <perlin.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+double perl(double v) { return perlin_get2d(v, 0, 3.3f, 6.0f, 342342); }
 
 typedef double (*wave_gen_F)(double v);
 
@@ -51,6 +54,9 @@ float *generate_wave(Oscillator_Type wave_type, float pitch, float velocity,
     break;
   case OSC_SIN:
     fptr = sin;
+    break;
+  case OSC_PERLIN:
+    fptr = perl;
     break;
   case OSC_CUSTOM:
     fptr = 0;

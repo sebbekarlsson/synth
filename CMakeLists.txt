@@ -19,6 +19,6 @@ target_sources(wav PRIVATE ${sources})
 #target_compile_options(wav PRIVATE -g -Wall)
 #add_compile_options(-g -Wall)
 
-target_link_libraries(wav PRIVATE m)
+target_link_libraries(wav PRIVATE m pthread)
 
 #add_compile_options(-g -Wall)

@@ -1,13 +1,31 @@
+#include <midi_input.h>
 #include <notedefs.h>
 #include <stdio.h>
 #include <synth.h>
+#include <utils.h>
 
 #define SAMPLE_RATE 48000
 
+void callback(void *data) {
+  MidiData_T *mdata = data;
+
+  if (mdata->type == NOTE_ON) {
+    printf("ON note: %12.6f\n", mdata->pitch);
+  } else {
+    printf("OFF note: %12.6f\n", mdata->pitch);
+  }
+}
+
 int main(int argc, char *argv[]) {
+
+  pthread_t t = receive_midi(callback);
+
+  pthread_join(t, 0);
+
+  return 0;
   int wave_length = 0;
 
-  Oscillator_T *osc = oscillator_init(OSC_TAN);
+  Oscillator_T *osc = oscillator_init(OSC_PERLIN);
   Oscillator_T *osc2 = oscillator_init(OSC_COS);
   Oscillator_T *osc3 = oscillator_init(OSC_SIN);
 
@@ -29,10 +47,11 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 
+  float *b = smoothen(device->buffer.data, device->buffer.length, 1.0f);
+
   printf("Buffer length: %d\n", device->buffer.length);
 
-  wav_write("audio.wav", device->buffer.data, device->buffer.length,
-            SAMPLE_RATE, 32, 2);
+  wav_write("audio.wav", b, device->buffer.length, SAMPLE_RATE, 32, 2);
 
   return 0;
 }
