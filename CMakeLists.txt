@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
 
 
-project(wav)
+project(synth)
 
 
-add_executable(wav)
+add_executable(synth)
 
 
 include_directories(include)
@@ -13,12 +13,12 @@ include_directories(include)
 
 FILE(GLOB sources src/*)
 
-target_sources(wav PRIVATE ${sources})
+target_sources(synth PRIVATE ${sources})
 
 
-#target_compile_options(wav PRIVATE -g -Wall)
+target_compile_options(synth PRIVATE -g -Wall)
 #add_compile_options(-g -Wall)
 
-target_link_libraries(wav PRIVATE m pthread)
+target_link_libraries(synth PRIVATE m pthread SDL2)
 
 #add_compile_options(-g -Wall)

@@ -1,16 +1,21 @@
 #ifndef ROB_TYPES_H
 #define ROB_TYPES_H
 #include <list.h>
+#include <moment.h>
 
 typedef struct {
   float* data;
   uint32_t length;
 } AudioBuffer_T;
 
+
+AudioBuffer_T* audio_buffer_copy(AudioBuffer_T ab, uint32_t start, uint32_t end);
+
 typedef struct {
-  float id;
+  int id;
   float pitch;
   float velocity;
+  int on;
 } Note_T;
 
 typedef struct {
@@ -28,7 +33,6 @@ typedef enum {
 } Oscillator_Type;
 
 typedef struct OSCILLATOR_STRUCT {
-  Envelope_T envelope;
   AudioBuffer_T buffer;
   Oscillator_Type type;
   float phase_shift;
@@ -44,12 +48,25 @@ typedef struct {
 
 typedef struct {
   list_T* oscillators;
-  DeviceInput_T input;
+  Note_T* notes[88];
+  moment note_times[88];
   AudioBuffer_T buffer;
   float sample_rate;
+  list_T* buffers;
+  Envelope_T envelope;
+  moment last_note_time;
+  int is_changed;
 } Device_T;
 
-int device_compute(Device_T* device);
+list_T* device_get_notes(Device_T* device);
+
+int device_compute(Device_T* device, uint32_t frame);
+
+AudioBuffer_T* device_next_frame(Device_T* device, uint32_t frame);
+
+int device_clear_buffer(Device_T* device);
+
+void device_update_midi_info(Device_T* device);
 
 Device_T* device_init(float sample_rate);
 

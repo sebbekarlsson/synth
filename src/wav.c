@@ -118,26 +118,19 @@ int wav_write(const char *path, float *data, uint32_t size, float sample_freq,
   return 1;
 }
 
-int wav_mix(float **data1, float *data2, uint32_t len1, uint32_t len2,
-            float dry, float wet) {
-  if (!data2 || !len2)
+int wav_mix(float *data1, float *data2, uint32_t len1, uint32_t len2, float dry,
+            float wet) {
+  if (!data2 || !len2 || !len1 || !data1) {
+    printf("Cannot mix.\n");
     return 0;
-
-  float *d1 = *data1;
-  if (!d1) {
-    *data1 = realloc(*data1, (len2 + 1) * sizeof(float));
-    d1 = *data1;
-    len1 = len2;
-
-    memset(d1, 0, len2 * sizeof(float));
   }
 
   for (uint32_t i = 0; i < len2; i++) {
     if (i >= len1)
       break;
 
-    d1[i] = (d1[i] * dry) + (data2[i] * wet);
+    data1[i] = (data1[i] * dry) + (data2[i] * wet);
   }
 
-  return len2;
+  return len1;
 }

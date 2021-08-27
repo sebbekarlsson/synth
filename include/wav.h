@@ -30,6 +30,9 @@ int wav_write(const char* path, float* data, uint32_t size, float sample_freq,
               uint16_t bits_per_sample, uint16_t nr_channels);
 
 
-int wav_mix(float** data1, float* data2, uint32_t len1, uint32_t len2, float dry, float wet);
+
+
+int wav_mix(float *data1, float *data2, uint32_t len1, uint32_t len2,
+            float dry, float wet);
 
 #endif

@@ -19,7 +19,7 @@ float *generate_wave(Oscillator_Type wave_type, float pitch, float velocity,
   }
 
   pitch = pitch > 0 ? pitch : 440.0f;
-  float seconds = (sample_rate * (sec * 1000.0f) / 60.0f) / 2;
+  float seconds = BLOCK_SIZE; //(sample_rate * (sec * 1000.0f) / 60.0f) / 2;
 
   float cycle = floor(((float)((float)sample_rate / (float)pitch)));
   float samples_left = seconds;
@@ -74,7 +74,7 @@ float *generate_wave(Oscillator_Type wave_type, float pitch, float velocity,
 
   for (uint32_t i = 0; i < seconds; i++) {
     buffer[i] =
-        (volume * fptr(((float)(i + phase_shift) / (float)cycle) * TAU));
+        (volume * fptr(((float)((float)i + phase_shift) / (float)cycle) * TAU));
   }
 
   return buffer;

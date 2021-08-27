@@ -1,8 +1,10 @@
+#include <math.h>
 #include <midi_input.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
+
+#define MIDI_INPUT "/dev/midi2"
 
 typedef struct {
   midi_callback callback;
@@ -19,7 +21,7 @@ static void *input_thread(void *ptr) {
 
   char packet[6][3];
 
-  FILE *f = fopen("/dev/midi2", "rb");
+  FILE *f = fopen(MIDI_INPUT, "rb");
 
   if (f == 0) {
     printf("Cannot open\n");
@@ -35,8 +37,7 @@ static void *input_thread(void *ptr) {
     char pack[3];
     bytes_read = fread(&pack, 3, 1, f);
 
-    if (pack[0] == -112)
-    {
+    if (pack[0] == -112) {
       int note = pack[1];
       int velocity = pack[2];
       inpacket.id = note;
@@ -47,8 +48,7 @@ static void *input_thread(void *ptr) {
       data->callback(&inpacket);
     }
 
-    if (pack[0] == -128)
-    {
+    if (pack[0] == -128) {
       int note = pack[1];
       inpacket.type = NOTE_OFF;
       inpacket.id = pack[1];
@@ -56,7 +56,6 @@ static void *input_thread(void *ptr) {
       inpacket.pitch = note_freq(note);
       data->callback(&inpacket);
     }
-
   }
 
   return 0;
