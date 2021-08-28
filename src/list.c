@@ -1,4 +1,5 @@
 #include <list.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 list_T *list_init(unsigned int item_size) {
@@ -15,9 +16,11 @@ void list_push(list_T *list, void *item) {
 }
 
 void *list_at(list_T *list, uint32_t index) {
-  if (index >= list->size || !list->items)
+  if (index >= list->size || !list->items) {
     return 0;
-  return list->items[index];
+  }
+  void *item = list->items[index];
+  return item;
 }
 
 void list_shift_left(list_T *list, int index) {
@@ -26,8 +29,9 @@ void list_shift_left(list_T *list, int index) {
 }
 
 void list_remove(list_T *list, void *element, void (*free_method)(void *item)) {
-  if (list->size == 0)
+  if (list->size == 0) {
     return;
+  }
 
   int index = -1;
 
@@ -38,8 +42,9 @@ void list_remove(list_T *list, void *element, void (*free_method)(void *item)) {
     }
   }
 
-  if (index == -1)
+  if (index == -1) {
     return;
+  }
 
   if (free_method != (void *)0)
     free_method(list->items[index]);
@@ -55,8 +60,10 @@ void list_remove(list_T *list, void *element, void (*free_method)(void *item)) {
 }
 
 void list_empty(list_T *list) {
-  if (!list->size || !list->items)
+  if (!list->size || !list->items) {
+
     return;
+  }
 
   free(list->items);
   list->items = 0;
@@ -64,12 +71,14 @@ void list_empty(list_T *list) {
 }
 
 void *list_pop(list_T *list) {
-  if (!list->size || list->items == 0)
+  if (!list->size || list->items == 0) {
     return 0;
+  }
   void *item = list->items[list->size - 1];
 
-  if (!item)
+  if (!item) {
     return 0;
+  }
 
   list_remove(list, item, 0);
 

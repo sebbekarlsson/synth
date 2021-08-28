@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <utils.h>
 
 double perl(double v) { return perlin_get2d(v, 0, 3.3f, 6.0f, 342342); }
 
@@ -13,13 +14,17 @@ typedef double (*wave_gen_F)(double v);
 float *generate_wave(Oscillator_Type wave_type, float pitch, float velocity,
                      float sample_rate, float sec, float phase_shift,
                      uint32_t *length) {
+
   if (!sample_rate) {
     printf("generate_wave: sample_rate is zero.\n");
     return (void *)0;
   }
 
   pitch = pitch > 0 ? pitch : 440.0f;
-  float seconds = BLOCK_SIZE; //(sample_rate * (sec * 1000.0f) / 60.0f) / 2;
+  float seconds =
+      SAMPLE_RATE /
+      2; // BLOCK_SIZE;//(sample_rate * (sec * 1000.0f) / 60.0f) / 2;
+         //
 
   float cycle = floor(((float)((float)sample_rate / (float)pitch)));
   float samples_left = seconds;
@@ -74,7 +79,10 @@ float *generate_wave(Oscillator_Type wave_type, float pitch, float velocity,
 
   for (uint32_t i = 0; i < seconds; i++) {
     buffer[i] =
-        (volume * fptr(((float)((float)i + phase_shift) / (float)cycle) * TAU));
+        ((fptr(((float)((float)i + phase_shift) / (float)cycle) * TAU)) *
+         volume);
+
+    buffer[i] = buffer[i] * (((float)i / (float)seconds) * 0.005f);
   }
 
   return buffer;

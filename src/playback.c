@@ -9,8 +9,11 @@ SDL_AudioDeviceID deviceId;
 
 int play_audio(float *buffer, uint32_t length, float sample_rate) {
 
+  int len = 512 / 2;
+  int frame = 0;
   // int len = ;
   if (!is_init) {
+    printf("Audio init.\n");
     SDL_Init(SDL_INIT_AUDIO);
 
     SDL_AudioSpec want;
@@ -18,7 +21,7 @@ int play_audio(float *buffer, uint32_t length, float sample_rate) {
     want.freq = (int)sample_rate;
     want.format = AUDIO_F32SYS;
     want.channels = 2;
-    want.samples = 512;
+    want.samples = len;
     want.callback = 0; // my_audio_callback;
 
     SDL_AudioSpec have = {};
@@ -28,6 +31,8 @@ int play_audio(float *buffer, uint32_t length, float sample_rate) {
     SDL_PauseAudioDevice(deviceId, 0);
 
     is_init = 1;
+
+    SDL_Delay(60);
   }
 
   if (!length || buffer == 0) {
@@ -35,20 +40,20 @@ int play_audio(float *buffer, uint32_t length, float sample_rate) {
     return 1;
   }
 
-  int frame = 0;
-  uint32_t iterations = length;
-  SDL_QueueAudio(deviceId, buffer, length * sizeof(float));
+  //  uint32_t iterations = length / 2;
+  SDL_QueueAudio(deviceId, buffer, length);
+  // SDL_Delay(1.0f / (float)sample_rate);
 
   while (SDL_GetQueuedAudioSize(deviceId)) {
-  };
+  }
 
-  // for (int i = 0; frame < iterations; i++) {
-  // SDL_QueueAudio(deviceId, &buffer[frame], len >> 1);
+  /*  for (int i = 0; frame < iterations; i++) {
+     SDL_QueueAudio(deviceId, &buffer[frame], len >> 1);
 
-  // frame += len >> 3;
-  // }
+     frame += len >> 3;
+    }*/
 
-  //  SDL_CloseAudioDevice(deviceId);
+  //  SDL_CloseAudioDevice(deviceI9;
 
   return deviceId;
 }

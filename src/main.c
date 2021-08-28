@@ -1,69 +1,84 @@
+#include <audiobuffer.h>
 #include <audiomath.h>
+#include <list.h>
+#include <math.h>
 #include <midi_input.h>
-#include <notedefs.h>
 #include <playback.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <synth.h>
-#include <utils.h>
+#include <string.h>
+#include <wav.h>
 
-#define SAMPLE_RATE 48000
+#define NR_NOTES 88
 
-// NOTE: The clicking noise is from multiple notes being played very fast.
+double delta = 0.0f;
 
-Oscillator_T *osc;
-Oscillator_T *osc2;
-Oscillator_T *osc3;
+Note_T notes[NR_NOTES];
 
-Device_T *device;
+pthread_t midi_thread;
 
-volatile int frame;
+pthread_mutex_t note_lock;
 
-void callback(void *data) {
-  MidiData_T *mdata = data;
+void midi_callback_func(void *ptr) {
 
-  if (mdata->type == NOTE_ON && mdata->velocity) {
+  MidiData_T *data = ptr;
 
-    printf("ON note: %12.6f\n", mdata->pitch);
-
-    Note_T *note = device_send_note(
-        device, (Note_T){mdata->id, mdata->pitch, mdata->velocity * 0.02f, 1});
-  } else if (mdata->type == NOTE_OFF) {
-    printf("OFF note: %12.6f\n", mdata->pitch);
-    Note_T *note = device_send_note(
-        device, (Note_T){mdata->id, mdata->pitch, mdata->velocity * 0.02f, 0});
+  if (data->type == NOTE_ON) {
+    printf("ON\n");
+    notes[data->note.id].velocity = data->note.velocity;
+    notes[data->note.id].pitch = data->note.pitch;
+  } else if (data->type == NOTE_OFF) {
+    printf("OFF\n");
+    notes[data->note.id].velocity = 0.0f;
+    notes[data->note.id].pitch = data->note.pitch;
   }
 }
 
-int main(int argc, char *argv[]) {
+double get_sample(double delta) {
+  double sample = 0;
 
-  pthread_t midi_thread = receive_midi(callback);
-
-  osc = oscillator_init(OSC_PERLIN);
-  osc2 = oscillator_init(OSC_COS);
-  osc3 = oscillator_init(OSC_SIN);
-
-  device = device_init(SAMPLE_RATE);
-  device_add_oscillator(device, osc3);
-  // device_add_oscillator(device, osc);
-
-  // wav_write("audio.wav", dd, framebuffer->length, SAMPLE_RATE, 32, 2);
-
-  int devid = 0;
-  while (1) {
-
-    AudioBuffer_T *framebuffer = device_next_frame(device, frame);
-
-    if (framebuffer && framebuffer->data && framebuffer->length) {
-      float *dd = smoothen(framebuffer->data, framebuffer->length, 1.0f);
-      devid = play_audio(dd, framebuffer->length, SAMPLE_RATE);
-    }
-
-    frame += BLOCK_SIZE >> 3;
+  for (int i = 0; i < NR_NOTES; i++) {
+    sample += ((double)sin(notes[i].pitch * TAU * delta) * notes[i].velocity) *
+              0.005f;
   }
 
+  return sample;
+}
+
+pthread_t player_thread_id;
+void *player_func(void *ptr) {
+  uint32_t len = 0;
+  float *buff = (float *)calloc(BLOCK_SIZE, sizeof(float));
+  int i = 0;
+  while (1) {
+    if (i >= BLOCK_SIZE) {
+      i = 0;
+      play_audio(buff, BLOCK_SIZE * sizeof(float), SAMPLE_RATE);
+    } else {
+      buff[i] = get_sample(delta);
+      i++;
+    }
+    delta += ((double)1.0f / (double)SAMPLE_RATE);
+  }
+
+  return 0;
+}
+
+int main(int argc, char *argv[]) {
+  for (int i = 0; i < NR_NOTES; i++) {
+    notes[i] = (Note_T){i, 0, 0, 0, 0, 0, 0};
+  }
+
+  pthread_mutex_init(&note_lock, 0);
+  pthread_create(&player_thread_id, 0, player_func, 0);
+  midi_thread = receive_midi(midi_callback_func);
+
+  pthread_join(player_thread_id, 0);
   pthread_join(midi_thread, 0);
+
+  while (1) {
+  };
 
   return 0;
 }

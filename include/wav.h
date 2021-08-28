@@ -18,21 +18,14 @@ typedef struct WAV_HEADER {
   uint32_t data_size;
 } WavHeader;
 
-
 typedef struct {
-  unsigned char* data;
+  unsigned char *data;
   uint32_t size;
   uint32_t size_b;
   uint32_t seek_p;
 } IOFile;
 
-int wav_write(const char* path, float* data, uint32_t size, float sample_freq,
+int wav_write(const char *path, float *data, uint32_t size, float sample_freq,
               uint16_t bits_per_sample, uint16_t nr_channels);
-
-
-
-
-int wav_mix(float *data1, float *data2, uint32_t len1, uint32_t len2,
-            float dry, float wet);
 
 #endif

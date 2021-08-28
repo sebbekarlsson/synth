@@ -28,22 +28,20 @@ static void *input_thread(void *ptr) {
     return 0;
   }
 
-  // now just wait around for MIDI bytes to arrive and print them to screen.
-  int i = 0;
   while (1) {
     memset(packet, 0, 3 * 7 * sizeof(char));
-    size_t bytes_read = 0;
 
     char pack[3];
-    bytes_read = fread(&pack, 3, 1, f);
+    fread(&pack, 3, 1, f);
 
     if (pack[0] == -112) {
       int note = pack[1];
       int velocity = pack[2];
-      inpacket.id = note;
       inpacket.type = NOTE_ON;
-      inpacket.pitch = note_freq(note);
-      inpacket.velocity = velocity;
+      inpacket.note = (Note_T){};
+      inpacket.note.id = note;
+      inpacket.note.pitch = note_freq(note);
+      inpacket.note.velocity = velocity;
 
       data->callback(&inpacket);
     }
@@ -51,9 +49,10 @@ static void *input_thread(void *ptr) {
     if (pack[0] == -128) {
       int note = pack[1];
       inpacket.type = NOTE_OFF;
-      inpacket.id = pack[1];
-      inpacket.velocity = 0;
-      inpacket.pitch = note_freq(note);
+      inpacket.note = (Note_T){};
+      inpacket.note.id = pack[1];
+      inpacket.note.velocity = 0;
+      inpacket.note.pitch = note_freq(note);
       data->callback(&inpacket);
     }
   }

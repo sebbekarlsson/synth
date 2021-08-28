@@ -3,9 +3,7 @@
 #include <sys/time.h>
 typedef struct timeval moment;
 
-
 moment get_time();
-
 
 double time_diff_micro_s(moment start, moment end);
 
