@@ -9,7 +9,7 @@ SDL_AudioDeviceID deviceId;
 
 int play_audio(float *buffer, uint32_t length, float sample_rate) {
 
-  int len = 512 / 2;
+  int len = 128;
   int frame = 0;
   // int len = ;
   if (!is_init) {
@@ -42,8 +42,9 @@ int play_audio(float *buffer, uint32_t length, float sample_rate) {
 
   //  uint32_t iterations = length / 2;
   SDL_QueueAudio(deviceId, buffer, length);
-  // SDL_Delay(1.0f / (float)sample_rate);
+  SDL_Delay((float)len / (float)sample_rate);
 
+  //  SDL_Delay(((double)length/2.0f) / (double)SAMPLE_RATE);
   while (SDL_GetQueuedAudioSize(deviceId)) {
   }
 

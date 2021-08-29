@@ -22,31 +22,49 @@ pthread_t midi_thread;
 
 pthread_mutex_t note_lock;
 
+double envelope_at(double x) {
+  return MAX(0, MIN(10, x * x) - (MAX(0, x * 0.9f)));
+}
+
 void midi_callback_func(void *ptr) {
 
   MidiData_T *data = ptr;
+  notes[data->note.id].id = data->note.id;
 
   if (data->type == NOTE_ON) {
     printf("ON\n");
+    notes[data->note.id].created = delta;
     notes[data->note.id].velocity = data->note.velocity;
     notes[data->note.id].pitch = data->note.pitch;
+    notes[data->note.id].created = delta;
+    notes[data->note.id].on = 1;
   } else if (data->type == NOTE_OFF) {
     printf("OFF\n");
-    notes[data->note.id].velocity = 0.0f;
     notes[data->note.id].pitch = data->note.pitch;
+    notes[data->note.id].on = 0;
   }
+  //  pthread_mutex_unlock(&note_lock);
 }
 
 double get_sample(double delta) {
   double sample = 0;
 
   for (int i = 0; i < NR_NOTES; i++) {
-    float harm1 = ((double)sin(notes[i].pitch * TAU * delta));
-    float harm2 = ((double)cos(notes[i].pitch * TAU * (delta * 2)));
-    float harm3 = (((double)sin(notes[i].pitch * TAU * (delta * 3))));
-    float harm4 = (((double)sin((notes[i].pitch * 2) * TAU * (delta * 4))));
+
+    double created = notes[i].created;
+
+    double env = 0.0f;
+
+    double diff = delta - created;
+
+    env = MAX(0.0f, envelope_at(diff * 16) * 0.5) * 0.1f;
+
+    double harm1 = ((double)sin(notes[i].pitch * TAU * delta)) * env;
+    double harm2 = ((double)sin(notes[i].pitch * TAU * delta * 2)) * env;
+    double harm3 = ((double)cos(notes[i].pitch * TAU * delta * 3)) * env;
+    double nr_harms = 3;
     sample +=
-        (((harm1 + harm2 + harm3 + harm4) / 4.0f) * notes[i].velocity) * 0.005f;
+        (((((harm1 + harm2 + harm3) / nr_harms) * notes[i].velocity) * 0.005f));
   }
 
   return sample;
@@ -64,7 +82,7 @@ void *player_func(void *ptr) {
   while (1) {
     if (i >= BLOCK_SIZE) {
       i = 0;
-      play_audio(buff, BLOCK_SIZE * sizeof(float), SAMPLE_RATE);
+      play_audio(buff, (BLOCK_SIZE) * sizeof(float), SAMPLE_RATE);
       rec_len += BLOCK_SIZE;
 
 #if RECORD != 0
@@ -76,7 +94,11 @@ void *player_func(void *ptr) {
       buff[i] = get_sample(delta);
       i++;
     }
-    delta += ((double)1.0f / (double)SAMPLE_RATE);
+    delta = delta + (double)((double)1.0f / (double)SAMPLE_RATE);
+
+    if (delta >= SAMPLE_RATE / 2) {
+      delta = 0;
+    }
 
 #if RECORD != 0
     if (delta >= 60)
