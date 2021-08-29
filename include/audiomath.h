@@ -5,5 +5,5 @@
 #define TAU (double)((double)2.0f * (double)M_PI)
 #endif
 #define SAMPLE_RATE 48000
-#define BLOCK_SIZE 512 * 8
+#define BLOCK_SIZE 512 * 2
 #endif
