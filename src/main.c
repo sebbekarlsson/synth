@@ -29,6 +29,8 @@ double envelope_at(double x) {
 void midi_callback_func(void *ptr) {
 
   MidiData_T *data = ptr;
+
+  pthread_mutex_lock(&note_lock);
   notes[data->note.id].id = data->note.id;
 
   if (data->type == NOTE_ON) {
@@ -43,7 +45,7 @@ void midi_callback_func(void *ptr) {
     notes[data->note.id].pitch = data->note.pitch;
     notes[data->note.id].on = 0;
   }
-  //  pthread_mutex_unlock(&note_lock);
+  pthread_mutex_unlock(&note_lock);
 }
 
 double get_sample(double delta) {
@@ -61,10 +63,8 @@ double get_sample(double delta) {
 
     double harm1 = ((double)sin(notes[i].pitch * TAU * delta)) * env;
     double harm2 = ((double)sin(notes[i].pitch * TAU * delta * 2)) * env;
-    double harm3 = ((double)cos(notes[i].pitch * TAU * delta * 3)) * env;
-    double nr_harms = 3;
-    sample +=
-        (((((harm1 + harm2 + harm3) / nr_harms) * notes[i].velocity) * 0.005f));
+    double nr_harms = 2;
+    sample += (((((harm1 + harm2) / nr_harms) * notes[i].velocity) * 0.005f));
   }
 
   return sample;
@@ -92,16 +92,16 @@ void *player_func(void *ptr) {
 #endif
     } else {
       buff[i] = get_sample(delta);
+      delta = delta + (double)((double)1.0f / (double)SAMPLE_RATE);
       i++;
     }
-    delta = delta + (double)((double)1.0f / (double)SAMPLE_RATE);
 
     if (delta >= SAMPLE_RATE / 2) {
       delta = 0;
     }
 
 #if RECORD != 0
-    if (delta >= 60)
+    if (delta >= 30)
       break;
 #endif
   }

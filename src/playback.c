@@ -42,7 +42,7 @@ int play_audio(float *buffer, uint32_t length, float sample_rate) {
 
   //  uint32_t iterations = length / 2;
   SDL_QueueAudio(deviceId, buffer, length);
-  SDL_Delay((float)len / (float)sample_rate);
+  // SDL_Delay((float)len / (float)sample_rate);
 
   //  SDL_Delay(((double)length/2.0f) / (double)SAMPLE_RATE);
   while (SDL_GetQueuedAudioSize(deviceId)) {
